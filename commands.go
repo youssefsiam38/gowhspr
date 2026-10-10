@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // minSeconds skips accidental taps that captured no speech.
@@ -37,7 +38,17 @@ func toggle() error {
 	}
 	defer os.Remove(wav)
 
-	if wavDuration(wav) < minSeconds {
+	entry := historyEntry{Time: time.Now(), Seconds: wavDuration(wav)}
+	err = transcribeAndEmit(cfg, wav, &entry)
+	if err != nil {
+		entry.Error = err.Error()
+	}
+	appendHistory(entry)
+	return err
+}
+
+func transcribeAndEmit(cfg Config, wav string, entry *historyEntry) error {
+	if entry.Seconds < minSeconds {
 		if cfg.notifyEnabled() {
 			notify("Too short", "Nothing recorded")
 		}
@@ -54,6 +65,7 @@ func toggle() error {
 	if err != nil {
 		return err
 	}
+	entry.Raw = text
 	if text == "" {
 		if cfg.notifyEnabled() {
 			notify("No speech detected", "")
@@ -61,6 +73,7 @@ func toggle() error {
 		return nil
 	}
 	text = runHook(cfg, text)
+	entry.Typed = text
 	if cfg.notifyEnabled() {
 		notify("Done", fmt.Sprintf("%d chars", len(text)))
 	}

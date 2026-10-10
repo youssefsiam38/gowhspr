@@ -37,8 +37,29 @@ func emit(cfg Config, text string) error {
 	return typeText(text)
 }
 
+// asciiReplacer maps typographic characters models emit to keys ydotool can type.
+var asciiReplacer = strings.NewReplacer(
+	"\u2018", "'", "\u2019", "'", "\u201c", `"`, "\u201d", `"`,
+	"\u2013", "-", "\u2014", "-", "\u2026", "...", "\u00a0", " ",
+)
+
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 0x80 {
+			return false
+		}
+	}
+	return true
+}
+
+// typeText types ASCII with ydotool, which silently drops characters it has
+// no key for; anything still non-ASCII after normalising is pasted instead.
 func typeText(text string) error {
-	cmd := exec.Command("ydotool", "type", "--key-delay=4", "--key-hold=4", "--file=-")
+	text = asciiReplacer.Replace(text)
+	if !isASCII(text) {
+		return paste(text)
+	}
+	cmd := exec.Command("ydotool", "type", "--key-delay=12", "--key-hold=8", "--file=-")
 	cmd.Stdin = strings.NewReader(text)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr

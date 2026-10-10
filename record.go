@@ -83,9 +83,14 @@ func recorderCommand(out string) (string, []string) {
 	return "parecord", []string{"--rate=16000", "--channels=1", "--format=s16le", "--file-format=wav", out}
 }
 
+// tailDelay is extra audio kept after the stop press.
+const tailDelay = 400 * time.Millisecond
+
 // stopRecording signals the recorder and waits for it to finalise the WAV.
 func stopRecording(pid int) error {
 	defer os.Remove(pidFile())
+	// Keep recording briefly: people press the key while saying the last word.
+	time.Sleep(tailDelay)
 	if err := syscall.Kill(pid, syscall.SIGINT); err != nil && !errors.Is(err, syscall.ESRCH) {
 		return err
 	}

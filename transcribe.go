@@ -15,11 +15,31 @@ import (
 	"time"
 )
 
-// transcribe sends the WAV to an OpenAI-compatible /audio/transcriptions endpoint.
+// errHTTP marks a response from the server, which retrying will not fix.
+type errHTTP struct{ msg string }
+
+func (e errHTTP) Error() string { return e.msg }
+
+// transcribe retries network failures (resets, timeouts) up to three times.
 func transcribe(cfg Config, path string) (string, error) {
 	if cfg.APIKey == "" {
 		return "", errors.New("no API key: set OPENAI_API_KEY or openai_api_key in " + configPath())
 	}
+	var err error
+	for attempt := 1; attempt <= 3; attempt++ {
+		var text string
+		text, err = transcribeOnce(cfg, path)
+		var httpErr errHTTP
+		if err == nil || errors.As(err, &httpErr) {
+			return text, err
+		}
+		time.Sleep(time.Duration(attempt) * time.Second)
+	}
+	return "", err
+}
+
+// transcribeOnce sends the audio to an OpenAI-compatible /audio/transcriptions endpoint.
+func transcribeOnce(cfg Config, path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -62,9 +82,12 @@ func transcribe(cfg Config, path string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	data, _ := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("transcription failed (%s): %s", resp.Status, strings.TrimSpace(string(data)))
+		return "", errHTTP{fmt.Sprintf("transcription failed (%s): %s", resp.Status, strings.TrimSpace(string(data)))}
 	}
 	var out struct {
 		Text string `json:"text"`

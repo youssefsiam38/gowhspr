@@ -64,7 +64,7 @@ On other desktops (KDE, Hyprland, Sway, ...) bind `gowhspr toggle` and `gowhspr 
 | `model` | `gpt-4o-transcribe` | Transcription model |
 | `language` | auto | ISO-639-1 code, e.g. `en` |
 | `prompt` | | Vocabulary or style hint for the model |
-| `output` | `type` | `type` (ydotool keystrokes) or `paste` (clipboard + Ctrl+V) |
+| `output` | `type` | `type` (ydotool keystrokes; text with characters ydotool cannot type is pasted) or `paste` (clipboard + Ctrl+V) |
 | `post_transcription_hook` | | Program that gets the transcript on stdin; non-empty stdout replaces it (5 s timeout) |
 | `notify` | `true` | Desktop notifications |
 
@@ -72,6 +72,8 @@ On other desktops (KDE, Hyprland, Sway, ...) bind `gowhspr toggle` and `gowhspr 
 
 - **Nothing is typed:** check `ydotoold` is running and your user can reach its socket (`ydotool type hello`).
 - **Wrong mic:** change the input device in system sound settings; the next recording uses it.
+- **Text is cut off or wrong:** every dictation is logged to `~/.local/state/gowhspr/history.jsonl` (last 200) with the transcript, the text typed after the hook, and any error. If `transcript` is complete but less was typed, the typing step is at fault; if `transcript` is already short, the recording or the model is.
+- **Network hiccups:** a dropped connection is retried up to three times before giving up.
 - **Test the API without the mic:** `gowhspr transcribe some.wav`.
 
 ## License
