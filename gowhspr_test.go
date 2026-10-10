@@ -31,7 +31,7 @@ func TestTranscribeRetriesNetworkErrors(t *testing.T) {
 			conn.Close()
 			return
 		}
-		w.Write([]byte(`{"text":" hello world "}`))
+		w.Write([]byte(`{"text":" hello\nworld "}`))
 	}))
 	defer srv.Close()
 

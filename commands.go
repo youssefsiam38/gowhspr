@@ -61,6 +61,7 @@ func transcribeAndEmit(cfg Config, wav string, entry *historyEntry) error {
 	if upload != wav {
 		defer os.Remove(upload)
 	}
+	keepLastRecording(upload)
 	text, err := transcribe(cfg, upload)
 	if err != nil {
 		return err
