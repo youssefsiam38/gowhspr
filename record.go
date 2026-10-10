@@ -100,6 +100,22 @@ func stopRecording(pid int) error {
 	return nil
 }
 
+// compress re-encodes the WAV as 24 kbps Opus (~11x smaller) so uploads stay
+// fast on slow links. Without ffmpeg, or if encoding fails, the WAV is used.
+func compress(wav string) string {
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
+		return wav
+	}
+	ogg := strings.TrimSuffix(wav, ".wav") + ".ogg"
+	cmd := exec.Command("ffmpeg", "-loglevel", "error", "-y", "-i", wav,
+		"-c:a", "libopus", "-b:a", "24k", "-application", "voip", ogg)
+	if err := cmd.Run(); err != nil {
+		os.Remove(ogg)
+		return wav
+	}
+	return ogg
+}
+
 // wavDuration estimates seconds of 16 kHz mono s16 audio from file size.
 func wavDuration(path string) float64 {
 	st, err := os.Stat(path)

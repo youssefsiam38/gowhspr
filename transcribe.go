@@ -45,7 +45,9 @@ func transcribe(cfg Config, path string) (string, error) {
 	}
 	w.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	// Allow 60 s for processing plus 1 s per 2 KB uploaded, for slow links.
+	timeout := 60*time.Second + time.Duration(body.Len()/2000)*time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	url := strings.TrimRight(cfg.BaseURL, "/") + "/audio/transcriptions"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)

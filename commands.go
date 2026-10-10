@@ -46,7 +46,11 @@ func toggle() error {
 	if cfg.notifyEnabled() {
 		notify("Transcribing…", "")
 	}
-	text, err := transcribe(cfg, wav)
+	upload := compress(wav)
+	if upload != wav {
+		defer os.Remove(upload)
+	}
+	text, err := transcribe(cfg, upload)
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ Dictation for Linux as one small Go binary. Press a shortcut to start recording,
 - PipeWire (`pw-record`) or PulseAudio (`parecord`)
 - [`ydotool`](https://github.com/ReimuNotMoe/ydotool) with `ydotoold` running (types the text)
 - `wl-copy` (only for `"output": "paste"`)
+- `ffmpeg` with libopus (optional, recommended: compresses audio ~11x before upload; falls back to WAV)
 - `notify-send` (optional, for status notifications)
 - An OpenAI API key, or any OpenAI-compatible transcription server
 
