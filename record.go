@@ -105,20 +105,21 @@ func stopRecording(pid int) error {
 	return nil
 }
 
-// compress re-encodes the WAV as 24 kbps Opus (~11x smaller) so uploads stay
+// compress re-encodes the WAV as 24 kbps Opus in WebM, a format OpenAI lists
+// as supported (~11x smaller than WAV), so uploads stay
 // fast on slow links. Without ffmpeg, or if encoding fails, the WAV is used.
 func compress(wav string) string {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		return wav
 	}
-	ogg := strings.TrimSuffix(wav, ".wav") + ".ogg"
+	webm := strings.TrimSuffix(wav, ".wav") + ".webm"
 	cmd := exec.Command("ffmpeg", "-loglevel", "error", "-y", "-i", wav,
-		"-c:a", "libopus", "-b:a", "24k", "-application", "voip", ogg)
+		"-c:a", "libopus", "-b:a", "24k", "-application", "voip", webm)
 	if err := cmd.Run(); err != nil {
-		os.Remove(ogg)
+		os.Remove(webm)
 		return wav
 	}
-	return ogg
+	return webm
 }
 
 // wavDuration estimates seconds of 16 kHz mono s16 audio from file size.

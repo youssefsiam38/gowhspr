@@ -57,13 +57,13 @@ func transcribeOnce(cfg Config, path string) (string, error) {
 	}
 	w.WriteField("model", cfg.Model)
 	w.WriteField("response_format", "json")
-	// Without chunking, gpt-4o models transcribe the clip as one block and
-	// can stop after a pause; "auto" normalises loudness and splits on speech.
-	if strings.HasPrefix(cfg.Model, "gpt-4o") {
-		w.WriteField("chunking_strategy", "auto")
-	}
 	if cfg.Language != "" {
-		w.WriteField("language", cfg.Language)
+		// gpt-transcribe takes a languages list and rejects the singular field.
+		if cfg.Model == "gpt-transcribe" {
+			w.WriteField("languages[]", cfg.Language)
+		} else {
+			w.WriteField("language", cfg.Language)
+		}
 	}
 	if cfg.Prompt != "" {
 		w.WriteField("prompt", cfg.Prompt)
@@ -100,7 +100,6 @@ func transcribeOnce(cfg Config, path string) (string, error) {
 	if err := json.Unmarshal(data, &out); err != nil {
 		return "", fmt.Errorf("bad transcription response: %w", err)
 	}
-	// Chunked results put each chunk on its own line; a typed newline is
-	// Enter, which would submit chat boxes mid-dictation.
+	// A typed newline is Enter, which would submit chat boxes mid-dictation.
 	return strings.Join(strings.Fields(out.Text), " "), nil
 }

@@ -78,7 +78,7 @@ func keepLastRecording(path string) {
 	if os.MkdirAll(dir, 0o700) != nil {
 		return
 	}
-	for _, old := range []string{"last.ogg", "last.wav"} {
+	for _, old := range []string{"last.ogg", "last.webm", "last.wav"} {
 		os.Remove(filepath.Join(dir, old))
 	}
 	os.WriteFile(filepath.Join(dir, "last"+filepath.Ext(path)), data, 0o600)

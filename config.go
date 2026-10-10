@@ -49,7 +49,7 @@ func loadConfig() (Config, error) {
 		cfg.BaseURL = "https://api.openai.com/v1"
 	}
 	if cfg.Model == "" {
-		cfg.Model = "gpt-4o-transcribe"
+		cfg.Model = "gpt-transcribe"
 	}
 	if cfg.Output == "" {
 		cfg.Output = "type"

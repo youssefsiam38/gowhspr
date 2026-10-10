@@ -12,7 +12,7 @@ Dictation for Linux as one small Go binary. Press a shortcut to start recording,
 - PipeWire (`pw-record`) or PulseAudio (`parecord`)
 - [`ydotool`](https://github.com/ReimuNotMoe/ydotool) with `ydotoold` running (types the text)
 - `wl-copy` (only for `"output": "paste"`)
-- `ffmpeg` with libopus (optional, recommended: compresses audio ~11x before upload; falls back to WAV)
+- `ffmpeg` with libopus (optional, recommended: compresses audio ~11x (Opus in WebM) before upload; falls back to WAV)
 - `notify-send` (optional, for status notifications)
 - An OpenAI API key, or any OpenAI-compatible transcription server
 
@@ -61,8 +61,8 @@ On other desktops (KDE, Hyprland, Sway, ...) bind `gowhspr toggle` and `gowhspr 
 |---|---|---|
 | `openai_api_key` | | API key |
 | `base_url` | `https://api.openai.com/v1` | Any OpenAI-compatible server (Groq, local whisper servers, ...) |
-| `model` | `gpt-4o-transcribe` | Transcription model |
-| `language` | auto | ISO-639-1 code, e.g. `en` |
+| `model` | `gpt-transcribe` | Transcription model. Avoid `gpt-4o-transcribe`: it drops phrases from short dictations |
+| `language` | auto | ISO-639-1 code, e.g. `en` (sent as `languages[]` for `gpt-transcribe`) |
 | `prompt` | | Vocabulary or style hint for the model |
 | `output` | `type` | `type` (ydotool keystrokes; text with characters ydotool cannot type is pasted) or `paste` (clipboard + Ctrl+V) |
 | `post_transcription_hook` | | Program that gets the transcript on stdin; non-empty stdout replaces it (5 s timeout) |
