@@ -57,13 +57,14 @@ func transcribeOnce(cfg Config, path string) (string, error) {
 	}
 	w.WriteField("model", cfg.Model)
 	w.WriteField("response_format", "json")
-	if cfg.Language != "" {
-		// gpt-transcribe takes a languages list and rejects the singular field.
-		if cfg.Model == "gpt-transcribe" {
-			w.WriteField("languages[]", cfg.Language)
-		} else {
-			w.WriteField("language", cfg.Language)
+	// gpt-transcribe takes a languages list and rejects the singular field;
+	// older models accept only one language hint.
+	if cfg.Model == "gpt-transcribe" {
+		for _, lang := range cfg.Languages {
+			w.WriteField("languages[]", lang)
 		}
+	} else if len(cfg.Languages) == 1 {
+		w.WriteField("language", cfg.Languages[0])
 	}
 	if cfg.Prompt != "" {
 		w.WriteField("prompt", cfg.Prompt)

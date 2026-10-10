@@ -62,7 +62,7 @@ On other desktops (KDE, Hyprland, Sway, ...) bind `gowhspr toggle` and `gowhspr 
 | `openai_api_key` | | API key |
 | `base_url` | `https://api.openai.com/v1` | Any OpenAI-compatible server (Groq, local whisper servers, ...) |
 | `model` | `gpt-transcribe` | Transcription model. Avoid `gpt-4o-transcribe`: it drops phrases from short dictations |
-| `language` | auto | ISO-639-1 code, e.g. `en` (sent as `languages[]` for `gpt-transcribe`) |
+| `languages` | auto | Expected input languages, e.g. `["ar", "en"]`. `gpt-transcribe` uses the whole list; older models only a single entry. `language` (one code) still works |
 | `prompt` | | Vocabulary or style hint for the model |
 | `output` | `type` | `type` (ydotool keystrokes; text with characters ydotool cannot type is pasted) or `paste` (clipboard + Ctrl+V) |
 | `post_transcription_hook` | | Program that gets the transcript on stdin; non-empty stdout replaces it (5 s timeout) |

@@ -68,3 +68,26 @@ func TestHistoryIsBounded(t *testing.T) {
 		t.Fatalf("got %d entries, want %d", n, maxHistory)
 	}
 }
+
+func TestLanguagesSentToGPTTranscribe(t *testing.T) {
+	var got []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseMultipartForm(1 << 20)
+		got = r.MultipartForm.Value["languages[]"]
+		if _, ok := r.MultipartForm.Value["language"]; ok {
+			t.Error("gpt-transcribe must not get the singular language field")
+		}
+		w.Write([]byte(`{"text":"ok"}`))
+	}))
+	defer srv.Close()
+
+	audio := filepath.Join(t.TempDir(), "a.webm")
+	os.WriteFile(audio, []byte("audio"), 0o600)
+	cfg := Config{APIKey: "k", BaseURL: srv.URL, Model: "gpt-transcribe", Languages: []string{"ar", "en"}}
+	if _, err := transcribe(cfg, audio); err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 || got[0] != "ar" || got[1] != "en" {
+		t.Fatalf("languages[] = %v", got)
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Config struct {
@@ -13,7 +14,9 @@ type Config struct {
 	BaseURL  string `json:"base_url,omitempty"`
 	Model    string `json:"model,omitempty"`
 	Language string `json:"language,omitempty"`
-	Prompt   string `json:"prompt,omitempty"`
+	// Languages lists the expected input languages (ISO-639-1), e.g. ["ar", "en"].
+	Languages []string `json:"languages,omitempty"`
+	Prompt    string   `json:"prompt,omitempty"`
 	// Output is "type" (ydotool keystrokes) or "paste" (clipboard + Ctrl+V).
 	Output string `json:"output,omitempty"`
 	// PostHook receives the transcript on stdin; non-empty stdout replaces it.
@@ -51,6 +54,9 @@ func loadConfig() (Config, error) {
 	if cfg.Model == "" {
 		cfg.Model = "gpt-transcribe"
 	}
+	if len(cfg.Languages) == 0 && cfg.Language != "" {
+		cfg.Languages = []string{cfg.Language}
+	}
 	if cfg.Output == "" {
 		cfg.Output = "type"
 	}
@@ -76,7 +82,7 @@ func showConfig() error {
 	if cfg.APIKey != "" {
 		key = "(set)"
 	}
-	fmt.Printf("config:   %s\napi key:  %s\nbase url: %s\nmodel:    %s\nlanguage: %s\noutput:   %s\nhook:     %s\n",
-		configPath(), key, cfg.BaseURL, cfg.Model, cfg.Language, cfg.Output, cfg.PostHook)
+	fmt.Printf("config:   %s\napi key:  %s\nbase url: %s\nmodel:    %s\nlanguages: %s\noutput:   %s\nhook:     %s\n",
+		configPath(), key, cfg.BaseURL, cfg.Model, strings.Join(cfg.Languages, ", "), cfg.Output, cfg.PostHook)
 	return nil
 }
